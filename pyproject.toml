@@ -1,0 +1,33 @@
+[tool.poetry]
+name = 'dolphin_anty'
+version = '0.1.0'
+description = 'The package for interacting with API of anti-detect browser Dolphin Anty'
+authors = ['Alexey  <axbelenkov@gmail.com>']
+license = 'MIT'
+readme = 'README.md'
+repository = 'https://github.com/blnkoff/dolphin-anty'
+homepage = 'https://github.com/blnkoff/dolphin-anty'
+classifiers = [
+    'Development Status :: 2 - Pre-Alpha',
+    'Intended Audience :: Developers',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3 :: Only',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS'
+]
+packages = [{ include = 'dolphin_anty' }]
+
+[tool.poetry.dependencies]
+python = '^3.11'
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+python-dotenv = "^1.0.1"
+build = "^1.2.1"
+twine = "^5.0.0"
+
+[build-system]
+requires = ['poetry-core']
+build-backend = 'poetry.core.masonry.api'
