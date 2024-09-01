@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Any, Generic, TypeVar, Mapping
 from pydantic import BaseModel
-from ._base_client import _BaseClient
-from .client import Client, AsyncClient
 from .endpoint import Endpoint, Args
-from .types import IResponse
+from api_client._base_client import _BaseClient
+from api_client.client import Client, AsyncClient
+from api_client.types import IResponse
 
 T = TypeVar('T', Mapping[str, Any], BaseModel, IResponse)
 
@@ -97,6 +97,5 @@ class _Requester(Requester):
         endpoint = self._endpoint
 
         args = self._pre(**kwargs)
-        print(args)
         response = client.request(endpoint.method, **args)
         return self._post(response)

@@ -5,7 +5,8 @@ __all__ = [
     'camel_case',
     'pascal_case',
     'constant_case',
-    'kebab_case'
+    'kebab_case',
+    'header_case'
 ]
 
 

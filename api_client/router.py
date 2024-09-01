@@ -49,7 +49,7 @@ T = TypeVar('T')
 class BaseProfile:
     @router.get('/browser_profiles/{id_}', error_msg="Some_text")
     def get_profile(id_: Annotated[int, Path()]) -> Args:
-        return 
+        return DefaultArgs
         
     @get_profile.postprocessing()
     def _get_profile_post(response: ProfileModel) -> Profile:
