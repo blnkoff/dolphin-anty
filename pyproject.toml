@@ -20,13 +20,8 @@ classifiers = [
 packages = [{ include = 'dolphin_anty' }]
 
 [tool.poetry.dependencies]
-python = '^3.11'
-httpx = "^0.27.0"
-dataclasses-json = "^0.6.7"
-typing-extensions = "^4.12.2"
-aiometer = "^0.5.0"
-ratelimit = "^2.2.1"
-pydantic = "^2.8.2"
+python = '^3.9'
+sensei = "^0.1.0rc4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

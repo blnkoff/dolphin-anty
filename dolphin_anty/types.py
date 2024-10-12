@@ -1,9 +1,11 @@
-from typing import Literal, Any, Sequence, Mapping, Callable
-from pydantic import BaseModel, constr, PositiveInt, conint, field_validator, Json
-from pydantic.alias_generators import to_camel
-from typing_extensions import TypedDict
+from __future__ import annotations
 
-HandlingTuple = tuple[dict[str, dict | str], Callable[[dict[str, Any]], Any] | Callable[[], Any]]
+import json
+from typing import Literal, Any, Sequence, Mapping, Union
+from pydantic import constr, PositiveInt, conint, field_validator, NonNegativeInt, \
+    ConfigDict, AliasGenerator
+from pydantic.alias_generators import to_camel
+from sensei import APIModel
 
 IP = constr(pattern=r"^(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})(\.(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})){3}$")
 Port = conint(ge=1, le=65535)
@@ -19,10 +21,11 @@ Platform = Literal['windows', 'linux', 'macos']
 MainWebsite = Literal['google', 'tiktok', 'crypto', 'facebook']
 Status = Literal['ban', 'ready', 'new']
 
+_NNT = NonNegativeInt
 
-class _BaseModel(BaseModel):
-    def __str__(self):
-        return f'{self.__class__.__name__}({super().__str__()})'
+
+class BaseModel(APIModel):
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=to_camel))
 
     @field_validator('*')
     def _transform_empty_collections(cls, value: Any):
@@ -30,11 +33,8 @@ class _BaseModel(BaseModel):
             return None
         return value
 
-    class Config:
-        alias_generator = to_camel
 
-
-class _ModeMixin(_BaseModel):
+class _ModeMixin(BaseModel):
     mode: str
 
 
@@ -43,65 +43,116 @@ class UserAgent:
     value: str
 
 
-class WebRTC(_BaseModel):
+class WebRTC(BaseModel):
     mode: WebRTCMode
-    ip_address: IP | None = None
+    ip_address: Union[IP, None] = None
 
 
-class Canvas(_BaseModel):
+class Canvas(BaseModel):
     mode: CanvasMode
 
 
-class WebGL(_BaseModel):
+class WebGL(BaseModel):
     mode: CanvasMode
 
 
-class WebGLInfo(_BaseModel):
+class WebGLMaximum(BaseModel):
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=lambda x: x))
+
+    UNIFORM_BUFFER_OFFSET_ALIGNMENT: _NNT
+    MAX_TEXTURE_SIZE: _NNT
+    MAX_VIEWPORT_DIMS: list[_NNT]
+    MAX_VERTEX_ATTRIBS: _NNT
+    MAX_VERTEX_UNIFORM_VECTORS: _NNT
+    MAX_VARYING_VECTORS: _NNT
+    MAX_COMBINED_TEXTURE_IMAGE_UNITS: _NNT
+    MAX_VERTEX_TEXTURE_IMAGE_UNITS: _NNT
+    MAX_TEXTURE_IMAGE_UNITS: _NNT
+    MAX_FRAGMENT_UNIFORM_VECTORS: _NNT
+    MAX_CUBE_MAP_TEXTURE_SIZE: _NNT
+    MAX_RENDERBUFFER_SIZE: _NNT
+    MAX_3D_TEXTURE_SIZE: _NNT
+    MAX_ELEMENTS_VERTICES: _NNT
+    MAX_ELEMENTS_INDICES: _NNT
+    MAX_TEXTURE_LOD_BIAS: _NNT
+    MAX_DRAW_BUFFERS: _NNT
+    MAX_FRAGMENT_UNIFORM_COMPONENTS: _NNT
+    MAX_VERTEX_UNIFORM_COMPONENTS: _NNT
+    MAX_ARRAY_TEXTURE_LAYERS: _NNT
+    MIN_PROGRAM_TEXEL_OFFSET: int
+    MAX_PROGRAM_TEXEL_OFFSET: int
+    MAX_VARYING_COMPONENTS: _NNT
+    MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS: _NNT
+    MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS: _NNT
+    MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS: _NNT
+    MAX_COLOR_ATTACHMENTS: _NNT
+    MAX_SAMPLES: _NNT
+    MAX_VERTEX_UNIFORM_BLOCKS: _NNT
+    MAX_FRAGMENT_UNIFORM_BLOCKS: _NNT
+    MAX_COMBINED_UNIFORM_BLOCKS: _NNT
+    MAX_UNIFORM_BUFFER_BINDINGS: _NNT
+    MAX_UNIFORM_BLOCK_SIZE: _NNT
+    MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS: _NNT
+    MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: _NNT
+    MAX_VERTEX_OUTPUT_COMPONENTS: _NNT
+    MAX_FRAGMENT_INPUT_COMPONENTS: _NNT
+    MAX_ELEMENT_INDEX: _NNT
+
+
+class WebGLInfo(BaseModel):
     mode: WebGLMode
     vendor: str
     renderer: str
-    webgl2_maximum: str
+    webgl2_maximum: WebGLMaximum
+
+    @field_validator('webgl2_maximum', mode='before')
+    def _validate_webgl2_maximum(cls, value):
+        return json.loads(value)
 
 
 class ClientRect(_ModeMixin):
     pass
 
 
-class Notes(_BaseModel):
-    content: str | None
+class Notes(BaseModel):
+    content: Union[str, None]
     color: str
     style:  str
-    icon: str | None
+    icon: Union[str, None]
 
 
-class Timezone(_BaseModel):
+class Timezone(BaseModel):
     mode: AutoManual
-    value: str | None = None
+    value: Union[str, None] = None
 
 
-class Locale(_BaseModel):
+class Locale(BaseModel):
     mode: AutoManual
-    value: str | None
+    value: Union[str, None]
 
 
-class Ports(_BaseModel):
+class Ports(BaseModel):
     mode: str
-    blacklist: constr(pattern=r"^(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4})(,(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))*$") | None
+    blacklist: list[int]
+
+    @field_validator('blacklist', mode='before')
+    def _validate_blacklist(cls, value: str):
+        return [int(value) for value in value.split(',')]
 
 
-class Proxy(_BaseModel):
-    id: PositiveInt
-    name: str
-    type: Literal['http', 'socks5', 'socks4']
-    host: IP
-    saved_by_user: bool
-    crypto_key_id: PositiveInt
-    login: str
-    password: str
-    change_ip_url: IP | None
+class Proxy(BaseModel):
+    id: _NNT
+    name: Union[str, None] = None
+    type: Union[Literal['http', 'socks5', 'socks4'], None] = None
+    host: Union[IP, None] = None
+    saved_by_user: Union[bool, None] = None
+    crypto_key_id: Union[PositiveInt, None] = None
+    login: Union[str, None] = None
+    password: Union[str, None] = None
+    change_ip_url: Union[IP, None] = None
 
 
-class Access(_BaseModel):
+class Access(BaseModel):
     view: bool
     update: bool
     delete: bool
@@ -109,45 +160,43 @@ class Access(_BaseModel):
     usage: bool
 
 
-class Geolocation(_BaseModel):
+class Geolocation(BaseModel):
     mode: AutoManual
-    latitude: str | None
-    longitude: str | None
-    accuracy: str | None
+    latitude: Union[str, None]
+    longitude: Union[str, None]
+    accuracy: Union[str, None]
 
 
-class CPU(_BaseModel):
+class CPU(BaseModel):
     mode: RealManual
     value: int
 
 
-class Memory(_BaseModel):
+class Memory(BaseModel):
     mode: AutoManual
     value: int
 
 
-class Screen(_BaseModel):
+class Screen(BaseModel):
     mode: RealManual
-    width: int | None
-    height: int | None
-    resolution: Resolution | None
+    resolution: Union[Resolution, None]
 
 
-class Connection(_BaseModel):
+class Connection(BaseModel):
     downlink: float
     effective_type: Literal['slow-2g', '2g', '3g', '4g', '5g']
     rtt: int
     saveData: bool
 
 
-class MediaDevices(_BaseModel):
+class MediaDevices(BaseModel):
     mode: RealManual
-    audio_inputs: list[str] | None
-    video_inputs: list[str] | None
-    audioOutputs: list[str] | None
+    audio_inputs: Union[list[str], None]
+    video_inputs: Union[list[str], None]
+    audioOutputs: Union[list[str], None]
 
 
-class Extension(_BaseModel):
+class Extension(BaseModel):
     url: str
     type: str
     hash: str
@@ -155,16 +204,55 @@ class Extension(_BaseModel):
 
 class MacAddress(_ModeMixin):
     mode: str
-    value: str | None
+    value: Union[str, None]
 
 
 class DeviceName(_ModeMixin):
-    value: str | None = None
+    value: Union[str, None] = None
 
 
-class _WebGPU(TypedDict):
-    mode: AutoManual
-    value: Json
+class _Limits(BaseModel):
+    max_bind_groups: int
+    max_bindings_per_bind_group: int
+    max_buffer_size: int
+    max_color_attachment_bytes_per_sample: int
+    max_color_attachments: int
+    max_compute_invocations_per_workgroup: int
+    max_compute_workgroup_size_x: int
+    max_compute_workgroup_size_y: int
+    max_compute_workgroup_size_z: int
+    max_compute_workgroup_storage_size: int
+    max_compute_workgroups_per_dimension: int
+    max_dynamic_storage_buffers_per_pipeline_layout: int
+    max_dynamic_uniform_buffers_per_pipeline_layout: int
+    max_inter_stage_shader_components: int
+    max_inter_stage_shader_variables: int
+    max_sampled_textures_per_shader_stage: int
+    max_samplers_per_shader_stage: int
+    max_storage_buffer_binding_size: int
+    max_storage_buffers_per_shader_stage: int
+    max_storage_textures_per_shader_stage: int
+    max_texture_array_layers: int
+    max_texture_dimension_1d: int
+    max_texture_dimension_2d: int
+    max_texture_dimension_3d: int
+    max_uniform_buffer_binding_size: int
+    max_uniform_buffers_per_shader_stage: int
+    max_vertex_attributes: int
+    max_vertex_buffer_array_stride: int
+    max_vertex_buffers: int
+    min_storage_buffer_offset_alignment: int
+    min_uniform_buffer_offset_alignment: int
 
 
-WebGPU = Json[_WebGPU]
+class _Info(BaseModel):
+    architecture: str
+    description: str
+    device: str
+    vendor: str
+
+
+class WebGPU(BaseModel):
+    get_preferred_canvas_format: str
+    limits: _Limits
+    info: _Info
