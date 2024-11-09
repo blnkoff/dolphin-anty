@@ -11,8 +11,12 @@ classifiers = [
     'Development Status :: 2 - Pre-Alpha',
     'Intended Audience :: Developers',
     'Topic :: Software Development :: Libraries :: Python Modules',
-    'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'License :: OSI Approved :: MIT License',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS'
@@ -21,7 +25,7 @@ packages = [{ include = 'dolphin_anty' }]
 
 [tool.poetry.dependencies]
 python = '^3.9'
-sensei = "^0.1.0rc4"
+sensei = {git = "https://github.com/CrocoFactory/sensei.git", rev = "dev"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

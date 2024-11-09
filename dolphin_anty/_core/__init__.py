@@ -1,3 +1,3 @@
-from ._context import ContextProps
+from ._profile_info import ProfileInfo
 from ._base_profile_api import BaseProfileAPI
-from ._base_model_mixin import BaseModelMixin
+from ._base_model import BaseModel

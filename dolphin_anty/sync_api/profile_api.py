@@ -1,15 +1,14 @@
 from typing import Union, Annotated
 from pydantic import NonNegativeInt
 from typing_extensions import Self
-from sensei import Query, Router
-from .._core import BaseProfileAPI
-from .context import Context
-from ._base_model import BaseModel
+from sensei import Query, Router, Body
+from .._core import ProfileInfo, BaseProfileAPI
+from dolphin_anty.context import Context
 
 router: Router = Context.router
 
 
-class ProfileAPI(BaseProfileAPI, BaseModel):
+class ProfileAPI(BaseProfileAPI):
     @classmethod
     @router.get('/browser_profiles')
     def list(
@@ -22,8 +21,14 @@ class ProfileAPI(BaseProfileAPI, BaseModel):
             users: Union[list[int], None] = None,
             page: NonNegativeInt = 0
     ) -> list[Self]:
-        ...
+        pass
 
     @classmethod
     @router.get('/browser_profiles/{id_}')
-    def get(cls, id_: NonNegativeInt) -> Self: ...
+    def get(cls, id_: NonNegativeInt) -> Self:
+        pass
+
+    @classmethod
+    @router.post('/browser_profiles')
+    def create(cls, profile: Annotated[ProfileInfo, Body(embed=False)]) -> Self:
+        pass

@@ -1,4 +1,4 @@
-from sensei import Router, Manager
+from sensei import Router
 
 
 class ContextProps(type):
@@ -22,6 +22,6 @@ class ContextProps(type):
     def router(cls) -> Router:
         return cls._router
 
-    @property
-    def manager(cls) -> Manager:
-        return cls.router.manager
+
+class Context(metaclass=ContextProps):
+    _router = Router(host='https://dolphin-anty-api.com')

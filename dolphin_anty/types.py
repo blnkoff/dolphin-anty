@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import json
-from typing import Literal, Any, Sequence, Mapping, Union
-from pydantic import constr, PositiveInt, conint, field_validator, NonNegativeInt, \
-    ConfigDict, AliasGenerator
-from pydantic.alias_generators import to_camel
-from sensei import APIModel
+from typing import Literal, Any, Sequence, Mapping, Union, Optional
+from pydantic import constr, PositiveInt, conint, field_validator, NonNegativeInt, ConfigDict, AliasGenerator
+from sensei import APIModel, camel_case
+from dolphin_anty._utils import wrap_converter
 
 IP = constr(pattern=r"^(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})(\.(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})){3}$")
 Port = conint(ge=1, le=65535)
@@ -25,7 +24,13 @@ _NNT = NonNegativeInt
 
 
 class BaseModel(APIModel):
-    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=to_camel))
+    model_config = ConfigDict(
+        alias_generator=AliasGenerator(
+            serialization_alias=wrap_converter(camel_case),
+            validation_alias=wrap_converter(camel_case)
+        ),
+        populate_by_name=True
+    )
 
     @field_validator('*')
     def _transform_empty_collections(cls, value: Any):
@@ -107,7 +112,7 @@ class WebGLInfo(BaseModel):
 
     @field_validator('webgl2_maximum', mode='before')
     def _validate_webgl2_maximum(cls, value):
-        return json.loads(value)
+        return json.loads(value) if not isinstance(value, dict) else value
 
 
 class ClientRect(_ModeMixin):
@@ -137,7 +142,10 @@ class Ports(BaseModel):
 
     @field_validator('blacklist', mode='before')
     def _validate_blacklist(cls, value: str):
-        return [int(value) for value in value.split(',')]
+        if isinstance(value, str):
+            return [int(value) for value in value.split(',')]
+        else:
+            return value
 
 
 class Proxy(BaseModel):
@@ -247,8 +255,8 @@ class _Limits(BaseModel):
 
 class _Info(BaseModel):
     architecture: str
-    description: str
-    device: str
+    description: Optional[str] = None
+    device: Optional[str] = None
     vendor: str
 
 
@@ -256,3 +264,8 @@ class WebGPU(BaseModel):
     get_preferred_canvas_format: str
     limits: _Limits
     info: _Info
+
+
+class Useragent(BaseModel):
+    value: Optional[str] = None
+    mode: Literal['manual'] = 'manual'

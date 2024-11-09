@@ -1,8 +1,34 @@
-from typing import Self
-from dolphin_anty.core import BaseProfileAPI
+from typing import Union, Annotated
+from pydantic import NonNegativeInt
+from typing_extensions import Self
+from sensei import Query, Router, Body
+from .._core import ProfileInfo, BaseProfileAPI
+from dolphin_anty.context import Context
+
+router: Router = Context.router
 
 
 class ProfileAPI(BaseProfileAPI):
     @classmethod
-    def get(cls, id_: int) -> Self:
+    @router.get('/browser_profiles')
+    async def list(
+            cls,
+            limit: Annotated[NonNegativeInt, Query(50, le=50)] = 50,
+            query: Union[str, None] = None,
+            tags: Union[list[str], None] = None,
+            statuses: Union[list[int], None] = None,
+            main_websites: Union[list[str], None] = None,
+            users: Union[list[int], None] = None,
+            page: NonNegativeInt = 0
+    ) -> list[Self]:
+        pass
+
+    @classmethod
+    @router.get('/browser_profiles/{id_}')
+    async def get(cls, id_: NonNegativeInt) -> Self:
+        pass
+
+    @classmethod
+    @router.post('/browser_profiles')
+    async def create(cls, profile: Annotated[ProfileInfo, Body(embed=False)]) -> Self:
         pass
