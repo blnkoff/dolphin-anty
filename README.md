@@ -1,6 +1,8 @@
 # dolphin-anty
-                       
+       
+<a href="https://sensei.crocofactory.dev">
 <img style="border-radius: 5px" height="50px" src="https://raw.githubusercontent.com/CrocoFactory/.github/main/branding/sensei/logo/bookmark.svg">
+</a>                
 
 The package for interacting with API of anti-detect browser Dolphin Anty. The project is powered by 
 [Sensei](https://sensei.crocofactory.dev)
